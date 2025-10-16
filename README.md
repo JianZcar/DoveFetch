@@ -88,3 +88,11 @@ You can connect any standard email client (like Thunderbird, Outlook, or K-9 Mai
 *   **Username:** The `<userid>` you added via the shell.
 *   **Password:** The `<password>` you added for that user.
 *   **Security:** No SSL/TLS (as per the default configuration). This is not secure for production use over a network.
+
+## Planned Features
+*   **Better security** as of now there is no SSL/TLS (as per the default configuration). This is not secure for production use over a network.
+*   **Allow MultiDomain** as of now im using disroot as its domain
+*   Thinking for more ^v^
+
+## Contribution
+* I will allow pr later on. but feel free to leave suggestions in the issues.
