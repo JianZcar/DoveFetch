@@ -1,0 +1,38 @@
+dovecot_config_version = 2.4.1
+dovecot_storage_version = 2.4.1
+
+protocols = imap
+
+mail_driver = maildir
+mail_path =/mail/%{user}
+mail_index_path = /mail/indexes/%{user}
+
+auth_allow_cleartext = yes
+auth_mechanisms = plain login
+
+ssl = no
+
+log_path = /mail/dovecot.log
+
+sql_driver = sqlite
+sqlite_path = /mail/sqlite.db
+sqlite_readonly = yes
+
+passdb sql {
+  query = SELECT userid AS username, hashed_password as password\
+    FROM users \
+    WHERE userid = '%{user}'
+}
+
+userdb static {
+  fields {
+    uid = ${UID}
+    gid = ${GID}
+  }
+}
+
+service imap-login {
+  inet_listener imap {
+    port = 143
+  }
+}

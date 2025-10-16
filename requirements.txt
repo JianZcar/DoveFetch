@@ -1,0 +1,5 @@
+cffi==2.0.0
+cryptography==46.0.3
+IMAPClient==3.0.1
+passlib==1.7.4
+pycparser==2.23
