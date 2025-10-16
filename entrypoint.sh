@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-mkdir -p /mail/config
+envsubst < dovecot.conf.template | sudo tee /etc/dovecot/dovecot.conf > /dev/null
+envsubst < users.template | sudo tee /etc/dovecot/users > /dev/null
 
-envsubst < dovecot.conf.template > /mail/config/dovecot.conf
-envsubst < users.template > /mail/config/users
+touch /mail/dovecot.log
 
 python /usr/local/bin/fetch-email.py &
-sudo dovecot -F -c /mail/config/dovecot.conf
+sudo dovecot -F -c /etc/dovecot/dovecot.conf
