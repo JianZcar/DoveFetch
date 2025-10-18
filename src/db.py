@@ -109,7 +109,7 @@ def get_password(db_path: str, userid: str, master_key: bytes) -> str | None:
         return None
 
 
-def verify_master_key(db_path: str, key: bytes) -> bool:
+def verify_key(db_path: str, key: bytes) -> bool:
     f = Fernet(key)
     conn = sqlite3.connect(db_path)
     cursor = conn.execute("SELECT master_key FROM auth")

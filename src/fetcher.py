@@ -7,12 +7,18 @@ from imapclient import IMAPClient
 
 from db import list_users, get_password
 
-POP_HOST = IMAP_HOST = "disroot.org"
+DEFAULT_POP_HOST = DEFAULT_IMAP_HOST = "disroot.org"
+
+SERVER_LOOKUP = {
+    "disroot.org": ["disroot.org", "disroot.org"],
+}
+
 POLL_INTERVAL = 300
+
+STOP_EVENT = threading.Event()
 
 
 def setup_maildir(userid):
-    """Ensure Maildir structure exists for a user"""
     maildir = Path("/mail") / userid
     for sub in ("cur", "new", "tmp"):
         (maildir / sub).mkdir(parents=True, exist_ok=True)
@@ -28,20 +34,30 @@ def save_to_maildir(maildir: Path, message_bytes):
     print(f"[Maildir:{maildir.name}] Saved mail → {filepath}")
 
 
-def fetch_pop3(userid: str, password: str):
+def _hosts_for_user(userid: str):
+    if "@" not in userid:
+        return DEFAULT_POP_HOST, DEFAULT_IMAP_HOST
+
+    _, domain = userid.rsplit("@", 1)
+    hosts = SERVER_LOOKUP.get(domain)
+    return hosts[0], hosts[1]
+
+
+def fetch_pop3(userid: str, password: str, pop_host: str = None):
     maildir = setup_maildir(userid)
     try:
-        pop = POP3_SSL(POP_HOST, timeout=30)
+        pop_host = pop_host or DEFAULT_POP_HOST
+        pop = POP3_SSL(pop_host, timeout=30)
         pop.user(userid)
         pop.pass_(password)
 
-        num_messages = len(pop.list()[1])
-        if num_messages == 0:
+        num_mails = len(pop.list()[1])
+        if num_mails == 0:
             pop.quit()
             return
 
-        print(f"[POP3:{userid}] {num_messages} messages found")
-        for i in range(num_messages):
+        print(f"[POP3:{userid}] {num_mails} mails found")
+        for i in range(num_mails):
             _, lines, _ = pop.retr(i + 1)
             message_bytes = b"\n".join(lines)
             save_to_maildir(maildir, message_bytes)
@@ -53,56 +69,85 @@ def fetch_pop3(userid: str, password: str):
         print(f"[POP3:{userid}] Error: {e}")
 
 
-async def idle_imap(userid: str, password: str):
+async def idle_imap(userid: str, password: str, imap_host: str = None):
     setup_maildir(userid)
-    while True:
+    while not STOP_EVENT.is_set():
         try:
-            with IMAPClient(IMAP_HOST, ssl=True) as client:
+            imap_host = imap_host or DEFAULT_IMAP_HOST
+            with IMAPClient(imap_host, ssl=True) as client:
                 client.login(userid, password)
                 client.select_folder("INBOX")
-                print(f"[IMAP:{userid}] Connected, entering IDLE mode...")
+                print(f"[IMAP:{userid}] Connected")
 
-                while True:
+                while not STOP_EVENT.is_set():
                     client.idle()
-                    responses = client.idle_check(timeout=30)
+                    responses = client.idle_check(timeout=5)
                     client.idle_done()
 
                     if responses:
-                        print(f"[IMAP:{userid}] New mail detected!")
-                        fetch_pop3(userid, password)
+                        print(
+                            f"[IMAP:{userid}] New mail detected!")
+                        pop_host, _ = _hosts_for_user(userid)
+                        fetch_pop3(userid, password, pop_host=pop_host)
 
         except Exception as e:
-            print(f"[IMAP:{userid}] Error: {e}, reconnecting in 10s")
+            print(
+                f"[IMAP:{userid}] Error: {e}, reconnecting in 10s")
             await asyncio.sleep(10)
 
 
-def pop_poll_loop(userid: str, password: str):
-    while True:
-        fetch_pop3(userid, password)
-        time.sleep(POLL_INTERVAL)
+def pop_poll_loop(userid: str, password: str, pop_host: str):
+    while not STOP_EVENT.is_set():
+        try:
+            fetch_pop3(userid, password, pop_host=pop_host)
+        except Exception as e:
+            print(f"[POP3:{userid}] fetch error: {e}")
+        STOP_EVENT.wait(POLL_INTERVAL)
 
 
 def run_fetcher(db_path: str, key: bytes):
-    users = list_users(db_path, key)
-    if not users:
-        print("No users found")
-        return
-
-    for userid, _, enc_pw in users:
-        password = get_password(db_path, userid, key)
-        if password is None:
+    while True:
+        if STOP_EVENT.is_set():
+            time.sleep(1)
             continue
-        threading.Thread(
-            target=pop_poll_loop, args=(userid, password), daemon=True
-        ).start()
 
-    async def main_idle():
-        tasks = []
+        users = list_users(db_path, key)
+        if not users:
+            print("No users found")
+            return
+
         for userid, _, enc_pw in users:
             password = get_password(db_path, userid, key)
             if password is None:
                 continue
-            tasks.append(asyncio.create_task(idle_imap(userid, password)))
-        await asyncio.gather(*tasks)
+            pop_host, imap_host = _hosts_for_user(userid)
+            threading.Thread(
+                target=pop_poll_loop, args=(
+                    userid, password, pop_host), daemon=True
+            ).start()
 
-    asyncio.run(main_idle())
+        async def main_idle():
+            tasks = []
+            for userid, _, enc_pw in users:
+                password = get_password(db_path, userid, key)
+                if password is None:
+                    continue
+                pop_host, imap_host = _hosts_for_user(userid)
+                tasks.append(asyncio.create_task(
+                    idle_imap(userid, password, imap_host=imap_host)
+                ))
+            if tasks:
+                await asyncio.gather(*tasks)
+
+        asyncio.run(main_idle())
+        STOP_EVENT.wait()
+
+
+def start_fetcher():
+    STOP_EVENT.clear()
+    print("Fetcher stop signal cleared")
+
+
+def stop_fetcher():
+    STOP_EVENT.set()
+    print("Fetcher stop signal sent.")

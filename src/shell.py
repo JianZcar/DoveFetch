@@ -1,4 +1,6 @@
 import cmd
+
+from fetcher import start_fetcher, stop_fetcher
 from db import add_user, delete_user, list_users
 
 
@@ -32,11 +34,18 @@ class MailShell(cmd.Cmd):
             return
         delete_user(self.db_path, arg)
 
+    def do_start_fetcher(self, arg):
+        """starts fetcher"""
+        start_fetcher()
+
+    def do_stop_fetcher(self, arg):
+        """stops fetcher"""
+        stop_fetcher()
+
     def do_exit(self, arg):
-        """exit — Quit the shell"""
-        print("Goodbye.")
+        """exit - Quit the shell"""
         return True
 
     def do_quit(self, arg):
-        """quit — Same as exit"""
+        """quit - Quit the shell"""
         return self.do_exit(arg)
