@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 import threading
 
 from db import create_db, verify_key
@@ -11,7 +10,6 @@ from utils.key import generate_key, key_from_string
 
 
 def main():
-    global FETCHER_RUNNING
     db_path = "/mail/sqlite.db"
 
     if os.path.exists(db_path):
@@ -30,8 +28,6 @@ def main():
     threading.Thread(target=run_fetcher, args=(
         db_path, key), daemon=True).start()
     run_dovecot()
-
-    time.sleep(10)
 
     MailShell(db_path, key).cmdloop()
 

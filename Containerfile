@@ -2,7 +2,7 @@ FROM debian:stable-slim
 
 RUN apt-get update && apt-get install -y \
     sudo dovecot-core dovecot-imapd dovecot-pop3d dovecot-sqlite \
-    python3 python3-venv gettext-base \
+    python3 python3-venv gettext-base less \
     && rm -rf /var/lib/apt/lists/*
 
 

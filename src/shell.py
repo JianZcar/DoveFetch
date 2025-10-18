@@ -1,7 +1,9 @@
+import os
 import cmd
+import subprocess
 
-from fetcher import start_fetcher, stop_fetcher
 from db import add_user, delete_user, list_users
+from fetcher import start_fetcher, stop_fetcher
 
 
 class MailShell(cmd.Cmd):
@@ -41,6 +43,24 @@ class MailShell(cmd.Cmd):
     def do_stop_fetcher(self, arg):
         """stops fetcher"""
         stop_fetcher()
+
+    def do_watch_fetcher(self, arg):
+        """watch fetcher logs"""
+        try:
+            subprocess.run(["less", "-R", "+F", "/mail/fetcher.log"])
+        except FileNotFoundError:
+            print("Log file not found or less is not installed.")
+
+    def do_watch_dovecot(self, arg):
+        """watch dovecot logs"""
+        try:
+            subprocess.run(["less", "-R", "+F", "/mail/dovecot.log"])
+        except FileNotFoundError:
+            print("Log file not found or less is not installed.")
+
+    def do_clear(self, arg):
+        """clear - Clear the terminal screen"""
+        os.system('clear')
 
     def do_exit(self, arg):
         """exit - Quit the shell"""
