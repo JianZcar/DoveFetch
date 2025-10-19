@@ -20,7 +20,7 @@ The application runs in a container (e.g., Docker or Podman).
 
 *   On the first run, it generates a new encryption key and creates a SQLite database to store user information.
 *   For subsequent runs, it requires the encryption `KEY` to be provided as an environment variable to decrypt the stored credentials.
-*   It starts a background process (`fetcher`) that polls a remote email server for each configured user.
+*   Starts a background process (fetcher) that monitors remote email servers for each configured user. It primarily uses IMAP to detect mailbox changes in real time, with periodic polling as a fallback to ensure no messages are missed.
 *   It configures and runs a Dovecot IMAP server, allowing local email clients to connect and read the fetched emails.
 *   An interactive shell is provided in the container's terminal for managing user accounts.
 *   Nginx is used as a reverse proxy for SMTP, and it uses an authentication proxy to validate users.
