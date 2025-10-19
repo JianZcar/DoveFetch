@@ -117,6 +117,6 @@ You can connect any standard email client (like Thunderbird, Outlook, or K-9 Mai
 *   Thinking for more ^v^
 
 ## Contribution
-* I will allow pr later on. but feel free to leave suggestions in the issues.
+* Feel free to leave an issue or pr
 
 > ⚠️ Use at your own risk, I'm not liable for any data loss.
