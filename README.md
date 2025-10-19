@@ -28,6 +28,8 @@ The application runs in a container (e.g., Docker or Podman).
 
 ## Getting Started
 
+> ⚠️ It's best to use this in a container-network or in a trusted network
+
 ### Prerequisites
 
 *   A container runtime like Docker or Podman.
@@ -94,7 +96,7 @@ You can connect any standard email client (like Thunderbird, Outlook, or K-9 Mai
 *   **Port:** `143`
 *   **Username:** The `<userid>` you added via the shell.
 *   **Password:** The `<password>` you added for that user.
-*   **Security:** No SSL/TLS (as per the default configuration). This is not secure for production use over a network.
+*   **Security:** No SSL/TLS.
 
 ### SMTP (Outgoing Mail)
 
