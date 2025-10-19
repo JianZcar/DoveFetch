@@ -34,23 +34,29 @@ The application runs in a container (e.g., Docker or Podman).
 
 *   A container runtime like Docker or Podman.
 
-### Build the Container
-
-```sh
-podman build -t dovefetch .
-```
-
 ### First Run
 
-1.  Create a directory to store mail data:
+1. Clone the repository and change directory:
+   
+   ```sh
+   git clone git@github.com:JianZcar/DoveFetch.git
+   cd DoveFetch
+   ```
+
+2. Build the container
+    ```sh
+    podman build -t dovefetch .
+    ```
+
+3.  Create a directory to store mail data:
     ```sh
     mkdir mail
     ```
-2.  Run the container for the first time:
+4.  Run the container for the first time:
     ```sh
     podman run -it -v ./mail:/mail:Z --userns=keep-id -p 1143:143 -p 1110:110 -p 25:25 --name dovefetch dovefetch
     ```
-3.  On the first run, a new encryption `KEY` will be generated and printed to the console. **Save this key!** You will need it for all future runs.
+5.  On the first run, a new encryption `KEY` will be generated and printed to the console. **Save this key!** You will need it for all future runs.
 
     Example output:
     ```
