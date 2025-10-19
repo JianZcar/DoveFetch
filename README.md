@@ -16,7 +16,7 @@ This project provides a containerized email solution that fetches emails from an
 
 ## Supported Email providers.
 *   Disroot
-*   Help me add your email provider by posting an issue (oauth2 is not supported currently)
+*   Help me add your email provider by posting an issue or by giving a pr (oauth2 is not supported currently)
 
 ## How it Works
 
