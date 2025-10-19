@@ -1,4 +1,5 @@
 import os
+import ssl
 import time
 import asyncio
 import threading
@@ -13,8 +14,13 @@ from db import list_users, get_password
 # Default hosts
 DEFAULT_POP_HOST = DEFAULT_IMAP_HOST = "disroot.org"
 
-SERVER_LOOKUP = {
-    "disroot.org": ["disroot.org", "disroot.org"],
+
+CTX = ssl.create_default_context()
+CTX.check_hostname = True
+CTX.verify_mode = ssl.CERT_REQUIRED
+
+KNOWN_SERVER = {
+    "disroot.org": ("disroot.org", "disroot.org"),
 }
 
 POLL_INTERVAL = 300
@@ -50,7 +56,7 @@ def _hosts_for_user(userid: str):
     if "@" not in userid:
         return DEFAULT_POP_HOST, DEFAULT_IMAP_HOST
     _, domain = userid.rsplit("@", 1)
-    hosts = SERVER_LOOKUP.get(domain)
+    hosts = KNOWN_SERVER.get(domain)
     return hosts[0], hosts[1]
 
 
@@ -58,7 +64,7 @@ def fetch_pop3(userid: str, password: str, pop_host: str = None):
     maildir = setup_maildir(userid)
     try:
         pop_host = pop_host or DEFAULT_POP_HOST
-        pop = POP3_SSL(pop_host, timeout=30)
+        pop = POP3_SSL(pop_host, timeout=30, context=CTX)
         pop.user(userid)
         pop.pass_(password)
 
@@ -85,7 +91,8 @@ async def idle_imap(userid: str, password: str, imap_host: str = None):
     while not STOP_EVENT.is_set():
         try:
             imap_host = imap_host or DEFAULT_IMAP_HOST
-            with IMAPClient(imap_host, ssl=True) as client:
+            with IMAPClient(imap_host, ssl=True,
+                            ssl_context=CTX) as client:
                 client.login(userid, password)
                 client.select_folder("INBOX")
                 logger.info(f"[IMAP:{userid}] Connected")

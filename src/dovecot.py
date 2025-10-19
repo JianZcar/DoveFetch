@@ -1,5 +1,5 @@
-import subprocess
 from pathlib import Path
+import subprocess
 
 from utils.templater import env_substitution
 
@@ -17,4 +17,6 @@ def run_dovecot():
         ["sudo", "dovecot", "-c", "/etc/dovecot/dovecot.conf"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
+        close_fds=True,
+        start_new_session=True,
     )

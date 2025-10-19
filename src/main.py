@@ -2,10 +2,13 @@ import os
 import sys
 import threading
 
-from db import create_db, verify_key
 from shell import MailShell
+from nginx import run_nginx
+from stunnel import run_stunnel
 from dovecot import run_dovecot
 from fetcher import run_fetcher
+from authproxy import run_authproxy
+from db import create_db, verify_key
 from utils.key import generate_key, key_from_string
 
 
@@ -28,6 +31,11 @@ def main():
     threading.Thread(target=run_fetcher, args=(
         db_path, key), daemon=True).start()
     run_dovecot()
+
+    threading.Thread(
+        target=run_authproxy, daemon=True).start()
+    run_stunnel()
+    run_nginx()
 
     MailShell(db_path, key).cmdloop()
 

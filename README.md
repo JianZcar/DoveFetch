@@ -10,6 +10,9 @@ This project provides a containerized email solution that fetches emails from an
 *   Serves emails locally using a Dovecot IMAP server.
 *   User and password management via an interactive shell.
 *   Encrypts user passwords in the database.
+*   Nginx reverse proxy for SMTP.
+*   Stunnel for SSL/TLS encryption.
+*   Multi-domain support.
 
 ## How it Works
 
@@ -20,6 +23,8 @@ The application runs in a container (e.g., Docker or Podman).
 *   It starts a background process (`fetcher`) that polls a remote email server for each configured user.
 *   It configures and runs a Dovecot IMAP server, allowing local email clients to connect and read the fetched emails.
 *   An interactive shell is provided in the container's terminal for managing user accounts.
+*   Nginx is used as a reverse proxy for SMTP, and it uses an authentication proxy to validate users.
+*   Stunnel is used to provide SSL/TLS encryption for the SMTP connection.
 
 ## Getting Started
 
@@ -41,7 +46,7 @@ podman build -t dovefetch .
     ```
 2.  Run the container for the first time:
     ```sh
-    podman run -it -v ./mail:/mail:Z --userns=keep-id -p 1143:143 -p 1110:110 --name dovefetch dovefetch
+    podman run -it -v ./mail:/mail:Z --userns=keep-id -p 1143:143 -p 1110:110 -p 25:25 --name dovefetch dovefetch
     ```
 3.  On the first run, a new encryption `KEY` will be generated and printed to the console. **Save this key!** You will need it for all future runs.
 
@@ -56,7 +61,7 @@ podman build -t dovefetch .
 To start the container again after the initial setup, you must provide the saved key as an environment variable.
 
 ```sh
-podman run -it -v ./mail:/mail:Z --userns=keep-id -p 1143:143 -p 1110:110 -e KEY="your-saved-key" --name dovefetch dovefetch
+podman run -it -v ./mail:/mail:Z --userns=keep-id -p 1143:143 -p 1110:110 -p 25:25 -e KEY="your-saved-key" --name dovefetch dovefetch
 ```
 
 ## User Management
@@ -81,6 +86,8 @@ Once the container is running, you will be dropped into an interactive shell (`M
     ```
 ## Connecting an Email Client
 
+### IMAP (Incoming Mail)
+
 You can connect any standard email client (like Thunderbird, Outlook, or K-9 Mail) to the local Dovecot server.
 
 *   **IMAP Server:** `localhost` (or the IP address of the machine running the container)
@@ -89,9 +96,16 @@ You can connect any standard email client (like Thunderbird, Outlook, or K-9 Mai
 *   **Password:** The `<password>` you added for that user.
 *   **Security:** No SSL/TLS (as per the default configuration). This is not secure for production use over a network.
 
+### SMTP (Outgoing Mail)
+
+*   **SMTP Server:** `localhost` (or the IP address of the machine running the container)
+*   **Port:** `25`
+*   **Username:** The `<userid>` you added via the shell.
+*   **Password:** The `<password>` you added for that user.
+*   **Security:** No SSL/TLS.
+
 ## Planned Features
 *   **Better security** as of now there is no SSL/TLS (as per the default configuration). This is not secure for production use over a network.
-*   **Allow MultiDomain** as of now im using disroot as its domain
 *   Thinking for more ^v^
 
 ## Contribution
