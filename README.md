@@ -1,6 +1,6 @@
 # DoveFetch a Self-Hosted Email Fetcher and IMAP/SMTP Server
 
-This project provides a containerized email solution that fetches emails from an external email provider using POP3 and serves them locally through a Dovecot IMAP server. It's designed to be used a normal email storage this meant that the email provider is used as a buffer that be permantly stored locally.
+This project provides a containerized email solution that fetches emails from an external email provider using POP3 and serves them locally through a Dovecot IMAP server. It’s designed to function as a full IMAP/SMTP server and local mail storage solution. The external email provider acts only as a temporary relay, while all emails are permanently stored and managed locally.
 
 ## Features
 
