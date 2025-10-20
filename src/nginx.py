@@ -8,7 +8,7 @@ def run_nginx():
     log_file = log_path.open("a")
 
     subprocess.Popen(
-        ["sudo", "nginx", "-g", "daemon off;"],
+        ["nginx", "-g", "daemon off;"],
         stdout=log_file,
         stderr=subprocess.STDOUT,
         close_fds=True,

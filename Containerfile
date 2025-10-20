@@ -3,14 +3,11 @@ FROM debian:stable-slim
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    sudo less curl swaks \
+    acl less curl swaks \
     dovecot-core dovecot-imapd dovecot-pop3d dovecot-sqlite \
     stunnel4 nginx libnginx-mod-mail \
     python3 python3-venv gettext-base \
     && rm -rf /var/lib/apt/lists/*
-
-
-RUN echo 'ALL ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /mailservice
 
@@ -20,7 +17,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY dovecot/dovecot.conf.template ./
+COPY certs/dovefetch.crt /etc/ssl/certs/dovefetch.crt
+COPY certs/dovefetch.key  /etc/ssl/private/dovefetch.key
+
+COPY dovecot/dovecot.conf /etc/dovecot/dovecot.conf
 COPY stunnel/stunnel.conf /etc/stunnel/stunnel.conf
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY src/ /src/

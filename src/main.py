@@ -15,6 +15,9 @@ from utils.key import generate_key, key_from_string
 def main():
     db_path = "/mail/sqlite.db"
 
+    os.system("setfacl -R -m u:1000:rwx /mail")
+    os.system("setfacl -d -m u:1000:rwx /mail")
+
     if os.path.exists(db_path):
         env_key = os.environ.get("KEY")
         if not env_key:
