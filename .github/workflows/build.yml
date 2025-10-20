@@ -23,8 +23,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/dovefetch
-          docker build . --file Dockerfile --tag $IMAGE_NAME:latest --tag $IMAGE_NAME:${{ github.sha }}
+          IMAGE_NAME=dovefetch
+          docker build . --file Containerfile --tag $IMAGE_NAME:latest --tag $IMAGE_NAME:${{ github.sha }}
 
       - name: Push Docker image
         run: |
