@@ -32,5 +32,5 @@ jobs:
           file: Containerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/dovefetch:latest
-            ghcr.io/${{ github.repository_owner }}/dovefetch:${{ github.sha }}
+            ghcr.io/jianzcar/dovefetch:latest
+            ghcr.io/jianzcar/dovefetch:${{ github.sha }}
