@@ -3,7 +3,7 @@ FROM debian:stable-slim
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    acl less curl swaks \
+    acl tzdata less curl swaks \
     dovecot-core dovecot-imapd dovecot-pop3d dovecot-sqlite \
     stunnel4 nginx libnginx-mod-mail \
     python3 python3-venv gettext-base \
@@ -27,7 +27,7 @@ COPY src/ /src/
 
 RUN rm -f /etc/nginx/sites-enabled/default || true
 
-EXPOSE 143 110 8080
+EXPOSE 143 110 25
 
 VOLUME ["/mail"]
 
