@@ -1,0 +1,33 @@
+name: Build and Push Container Image to GHCR
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/dovefetch
+          docker build . --file Dockerfile --tag $IMAGE_NAME:latest --tag $IMAGE_NAME:${{ github.sha }}
+
+      - name: Push Docker image
+        run: |
+          IMAGE_NAME=dovefetch
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:${{ github.sha }}
