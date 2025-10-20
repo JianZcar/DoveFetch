@@ -122,7 +122,7 @@ This project includes a separate Docker container for Roundcube webmail.
     podman network create mailnet
     ```
 
-2.  Run DoveFetch (setting the ip is required for secure connection to work between to container)
+2.  Run DoveFetch (setting the ip 10.89.0.10 is required for secure connection to work between to container)
     ```sh
     podman run -dit --name dovefetch \
                    --network mailnet --ip 10.89.0.10 \
