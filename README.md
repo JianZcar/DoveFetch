@@ -13,6 +13,7 @@ This project provides a containerized email solution that fetches emails from an
 *   Nginx reverse proxy for SMTP.
 *   Stunnel for SSL/TLS encryption.
 *   Multi-domain support.
+*   Webmail access via Roundcube.
 
 ## Supported Email providers.
 *   Disroot
@@ -41,13 +42,13 @@ The application runs in a container (e.g., Docker or Podman).
 ### First Run
 
 1. Clone the repository and change directory:
-   
+
    ```sh
    git clone git@github.com:JianZcar/DoveFetch.git
    cd DoveFetch
    ```
 
-2. Build the container
+2. Build the main container:
     ```sh
     podman build -t dovefetch .
     ```
@@ -58,7 +59,7 @@ The application runs in a container (e.g., Docker or Podman).
     ```
 4.  Run the container for the first time:
     ```sh
-    podman run -it -v ./mail:/mail:Z --userns=keep-id -p 1143:143 -p 1110:110 -p 25:25 --name dovefetch dovefetch
+    podman run -it -v ./mail:/mail:Z --userns=keep-id -p 143:143 -p 993:993 -p 25:25 -p 465:465 --name dovefetch dovefetch
     ```
 5.  On the first run, a new encryption `KEY` will be generated and printed to the console. **Save this key!** You will need it for all future runs.
 
@@ -73,7 +74,7 @@ The application runs in a container (e.g., Docker or Podman).
 To start the container again after the initial setup, you must provide the saved key as an environment variable.
 
 ```sh
-podman run -it -v ./mail:/mail:Z --userns=keep-id -p 1143:143 -p 1110:110 -p 25:25 -e KEY="your-saved-key" --name dovefetch dovefetch
+podman run -it -v ./mail:/mail:Z --userns=keep-id -p 143:143 -p 993:993 -p 25:25 -p 465:465 -e KEY="your-saved-key" --name dovefetch dovefetch
 ```
 
 ## User Management
@@ -96,6 +97,67 @@ Once the container is running, you will be dropped into an interactive shell (`M
     ```
     mail> exit
     ```
+
+## Webmail (Roundcube)
+
+This project includes a separate Docker container for Roundcube webmail.
+
+### Building and Running Roundcube
+
+1.  Build the Roundcube container:
+    ```sh
+    podman build -t roundcube -f roundcube/Containerfile .
+    ```
+2.  Run the Roundcube container:
+    ```sh
+    podman run -d -p 8080:80 --name roundcube roundcube
+    ```
+    This will start Roundcube on `http://localhost:8080`.
+
+
+### Running both DoveFetch and Roundcube
+
+1.  Create a network
+    ```sh
+    podman network create mailnet
+    ```
+
+2.  Run DoveFetch (setting the ip is required for secure connection to work between to container)
+    ```sh
+    podman run -dit --name dovefetch \
+                   --network mailnet --ip 10.89.0.10 \
+                   -v /path/to/Maildir:/mail:Z \
+                   -e KEY=YOUR_KEY \
+                   dovefetch
+    ```
+
+3.  Run Roundcube
+    ```sh
+
+    podman run -d --name roundcube \
+               --network mailnet \
+               -p 8080:80 \
+               -e ROUNDCUBEMAIL_DEFAULT_HOST=ssl://10.89.0.10 \
+               -e ROUNDCUBEMAIL_DEFAULT_PORT=993 \
+               -e ROUNDCUBEMAIL_SMTP_SERVER=ssl://10.89.0.10 \
+               -e ROUNDCUBEMAIL_SMTP_PORT=465 \
+               roundcube
+
+
+    ```
+
+### Configuring Roundcube
+
+1.  Access Roundcube at `http://localhost:8080`.
+2.  On the login page, click on the gear icon to open the server settings.
+3.  Configure the IMAP and SMTP server settings as follows:
+    *   **IMAP Server:** `host.containers.internal` (or the IP address of the machine running the `dovefetch` container)
+    *   **IMAP Port:** `143`
+    *   **SMTP Server:** `host.containers.internal` (or the IP address of the machine running the `dovefetch` container)
+    *   **SMTP Port:** `25`
+    *   **Username:** The `<userid>` you added via the shell.
+    *   **Password:** The `<password>` you added for that user.
+
 ## Connecting an Email Client
 
 ### IMAP (Incoming Mail)
@@ -103,21 +165,19 @@ Once the container is running, you will be dropped into an interactive shell (`M
 You can connect any standard email client (like Thunderbird, Outlook, or K-9 Mail) to the local Dovecot server.
 
 *   **IMAP Server:** `localhost` (or the IP address of the machine running the container)
-*   **Port:** `143`
+*   **Port:** `143` (No SSL/TLS) or `993` (SSL/TLS)
 *   **Username:** The `<userid>` you added via the shell.
 *   **Password:** The `<password>` you added for that user.
-*   **Security:** No SSL/TLS.
 
 ### SMTP (Outgoing Mail)
 
 *   **SMTP Server:** `localhost` (or the IP address of the machine running the container)
-*   **Port:** `25`
+*   **Port:** `25` (No SSL/TLS) or `465` (SSL/TLS)
 *   **Username:** The `<userid>` you added via the shell.
 *   **Password:** The `<password>` you added for that user.
-*   **Security:** No SSL/TLS.
 
 ## Planned Features
-*   **Better security** as of now there is no SSL/TLS (as per the default configuration). This is not secure for production use over a network.
+*   Oauth2
 *   Thinking for more ^v^
 
 ## Contribution

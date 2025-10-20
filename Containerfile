@@ -27,7 +27,7 @@ COPY src/ /src/
 
 RUN rm -f /etc/nginx/sites-enabled/default || true
 
-EXPOSE 143 110 25
+EXPOSE 143 993 25 465
 
 VOLUME ["/mail"]
 

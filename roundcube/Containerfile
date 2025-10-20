@@ -1,0 +1,15 @@
+FROM roundcube/roundcubemail:latest-apache
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates; \
+    rm -rf /var/lib/apt/lists/*
+
+
+COPY certs/dovefetch.crt /usr/local/share/ca-certificates/dovefetch.crt
+RUN update-ca-certificates
+
+EXPOSE 80
