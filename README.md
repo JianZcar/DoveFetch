@@ -1,6 +1,6 @@
-# DoveFetch a Self-Hosted Email Fetcher and IMAP Server
+# DoveFetch a Self-Hosted Email Fetcher and IMAP/SMTP Server
 
-This project provides a containerized email solution that fetches emails from an external email provider using POP3 and serves them locally through a Dovecot IMAP server. It's designed to be used a normal email storage this meant that the email provider is used as a buffer that be permantly stored locally.
+This project provides a containerized email solution that fetches emails from an external email provider using POP3 and serves them locally through a Dovecot IMAP server. It’s designed to function as a full IMAP/SMTP server and local mail storage solution. The external email provider acts only as a temporary relay, while all emails are permanently stored and managed locally.
 
 ## Features
 
@@ -14,13 +14,17 @@ This project provides a containerized email solution that fetches emails from an
 *   Stunnel for SSL/TLS encryption.
 *   Multi-domain support.
 
+## Supported Email providers.
+*   Disroot
+*   Help me add your email provider by posting an issue or by giving a pr (oauth2 is not supported currently)
+
 ## How it Works
 
 The application runs in a container (e.g., Docker or Podman).
 
 *   On the first run, it generates a new encryption key and creates a SQLite database to store user information.
 *   For subsequent runs, it requires the encryption `KEY` to be provided as an environment variable to decrypt the stored credentials.
-*   It starts a background process (`fetcher`) that polls a remote email server for each configured user.
+*   Starts a background process (fetcher) that monitors remote email servers for each configured user. It primarily uses IMAP to detect mailbox changes in real time, with periodic polling as a fallback to ensure no messages are missed.
 *   It configures and runs a Dovecot IMAP server, allowing local email clients to connect and read the fetched emails.
 *   An interactive shell is provided in the container's terminal for managing user accounts.
 *   Nginx is used as a reverse proxy for SMTP, and it uses an authentication proxy to validate users.
@@ -34,23 +38,29 @@ The application runs in a container (e.g., Docker or Podman).
 
 *   A container runtime like Docker or Podman.
 
-### Build the Container
-
-```sh
-podman build -t dovefetch .
-```
-
 ### First Run
 
-1.  Create a directory to store mail data:
+1. Clone the repository and change directory:
+   
+   ```sh
+   git clone git@github.com:JianZcar/DoveFetch.git
+   cd DoveFetch
+   ```
+
+2. Build the container
+    ```sh
+    podman build -t dovefetch .
+    ```
+
+3.  Create a directory to store mail data:
     ```sh
     mkdir mail
     ```
-2.  Run the container for the first time:
+4.  Run the container for the first time:
     ```sh
     podman run -it -v ./mail:/mail:Z --userns=keep-id -p 1143:143 -p 1110:110 -p 25:25 --name dovefetch dovefetch
     ```
-3.  On the first run, a new encryption `KEY` will be generated and printed to the console. **Save this key!** You will need it for all future runs.
+5.  On the first run, a new encryption `KEY` will be generated and printed to the console. **Save this key!** You will need it for all future runs.
 
     Example output:
     ```
@@ -111,4 +121,6 @@ You can connect any standard email client (like Thunderbird, Outlook, or K-9 Mai
 *   Thinking for more ^v^
 
 ## Contribution
-* I will allow pr later on. but feel free to leave suggestions in the issues.
+* Feel free to leave an issue or pr
+
+> ⚠️ Use at your own risk, I'm not liable for any data loss.
