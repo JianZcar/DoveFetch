@@ -59,7 +59,7 @@ The application runs in a container (e.g., Docker or Podman).
     ```
 4.  Run the container for the first time:
     ```sh
-    podman run -it -v ./mail:/mail:Z --userns=keep-id -p 143:143 -p 993:993 -p 25:25 -p 465:465 --name dovefetch dovefetch
+    podman run -it -v ./mail:/mail:Z -p 143:143 -p 993:993 -p 25:25 -p 465:465 --name dovefetch dovefetch
     ```
 5.  On the first run, a new encryption `KEY` will be generated and printed to the console. **Save this key!** You will need it for all future runs.
 
@@ -74,7 +74,7 @@ The application runs in a container (e.g., Docker or Podman).
 To start the container again after the initial setup, you must provide the saved key as an environment variable.
 
 ```sh
-podman run -it -v ./mail:/mail:Z --userns=keep-id -p 143:143 -p 993:993 -p 25:25 -p 465:465 -e KEY="your-saved-key" --name dovefetch dovefetch
+podman run -it -v ./mail:/mail:Z -p 143:143 -p 993:993 -p 25:25 -p 465:465 -e KEY="your-saved-key" --name dovefetch dovefetch
 ```
 
 ## User Management
@@ -122,7 +122,7 @@ This project includes a separate Docker container for Roundcube webmail.
     podman network create mailnet
     ```
 
-2.  Run DoveFetch (setting the ip is required for secure connection to work between to container)
+2.  Run DoveFetch (setting the ip 10.89.0.10 is required for secure connection to work between to container)
     ```sh
     podman run -dit --name dovefetch \
                    --network mailnet --ip 10.89.0.10 \
