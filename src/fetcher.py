@@ -38,8 +38,26 @@ logger = logging.getLogger("fetcher")
 
 def setup_maildir(userid):
     maildir = Path("/mail") / userid
-    for sub in ("cur", "new", "tmp"):
-        (maildir / sub).mkdir(parents=True, exist_ok=True)
+    indexdir = Path("/mail") / "indexes" / userid
+
+    for folder in ("cur", "new", "tmp"):
+        (maildir / folder).mkdir(parents=True, exist_ok=True)
+
+    for folder in (".Drafts", ".INBOX", ".Sent"):
+        folder_path = indexdir / folder
+        folder_path.mkdir(parents=True, exist_ok=True)
+
+        for filename in ("dovecot.index",
+                         "dovecot.index.cache",
+                         "dovecot.index.log"):
+            file_path = folder_path / filename
+            file_path.touch(exist_ok=True)
+
+    for filename in ("dovecot.list.index.log",
+                     "dovecot.mailbox.log"):
+        file_path = indexdir / filename
+        file_path.touch(exist_ok=True)
+
     return maildir
 
 
